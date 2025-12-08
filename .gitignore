@@ -1,0 +1,8 @@
+.DS_Store
+.env
+.idea/
+app/.DS_Store
+app/__pycache__/
+app/dev.db
+app/routers/__pycache__/
+env.example
