@@ -21,8 +21,14 @@ def list_books(db: Session = Depends(get_db)):
 
 @router.post("/", response_model=schemas.Book)
 def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
-    obj = models.Book(title=book.title)
+    obj = models.Book(
+        title=book.title,
+        author=book.author,
+        description=book.description,
+        year=book.year
+    )
     db.add(obj)
     db.commit()
     db.refresh(obj)
     return obj
+
