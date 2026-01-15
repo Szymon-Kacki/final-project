@@ -1,6 +1,6 @@
 services:
   app:
-    build: .
+    image: librarylite:0.1
     ports:
       - "${APP_PORT:-8000}:8000"
     environment:
