@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request
+import os
 from pathlib import Path
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from routers import books
-from database import Base, engine
+from app.routers import books
+from app.database import Base, engine
 
 Base.metadata.create_all(bind=engine)
 
@@ -30,4 +31,4 @@ def home(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
