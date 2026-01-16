@@ -1,12 +1,24 @@
 services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_pass_123
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
   app:
-    image: librarylite:0.1
+    image: librarylite:0.2
+    build: .
     ports:
       - "${APP_PORT:-8000}:8000"
     environment:
-      - DATABASE_URL=sqlite:////data/app.db
-    volumes:
-      - db_data:/data
+      - DATABASE_URL=postgresql://app_user:app_pass_123@db:5432/app_db
+    depends_on:
+      - db
 
 volumes:
-  db_data:
+  pg_data:
