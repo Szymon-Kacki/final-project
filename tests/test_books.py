@@ -97,4 +97,9 @@ def test_update_book():
     data = response.json()
     assert data["title"] == "Nowy Tytul"
     assert data["year"] == 2025
-    assert data["author"] == "Autor"  
+    assert data["author"] == "Autor"
+
+def test_metrics_endpoint():
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "http_requests_total" in response.text
