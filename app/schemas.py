@@ -23,3 +23,18 @@ class BookUpdate(BaseModel):
     author: str | None = None
     description: str | None = None
     year: int | None = None
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    
+    class Config:
+        orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

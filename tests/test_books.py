@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.database import Base
 from app.main import app
-from app.routers.books import get_db
+from app.database import get_db
 
 # use a temporary SQLite file DB
 TEST_DATABASE_URL = "sqlite:///./test_temp.db"  # file-based SQLite
@@ -86,11 +86,20 @@ def test_update_book():
 
     book_id = create_resp.json()["id"]
 
+    user_data = {"username": "testuser", "password": "testpassword"}
+    client.post("/auth/register", json=user_data)
+
+    login_resp = client.post("/auth/login", data=user_data)
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     update_data = {
         "title": "Nowy Tytul",
         "year": 2025
     }
-    response = client.put(f"/books/{book_id}", json=update_data)
+
+    response = client.put(f"/books/{book_id}", json=update_data, headers=headers)
     
     assert response.status_code == 200
     
@@ -98,6 +107,20 @@ def test_update_book():
     assert data["title"] == "Nowy Tytul"
     assert data["year"] == 2025
     assert data["author"] == "Autor"
+
+def test_update_book_unauthorized():
+
+    create_resp = client.post("/books/", json={
+        "title": "Do Zmiany",
+        "author": "Autor"
+    })
+    book_id = create_resp.json()["id"]
+
+    update_data = {"title": "Zmiana tytułu"}
+    
+    response = client.put(f"/books/{book_id}", json=update_data)
+    
+    assert response.status_code == 401
 
 def test_metrics_endpoint():
     response = client.get("/metrics")
