@@ -1,4 +1,4 @@
-import os
+import os, time
 from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
@@ -31,6 +31,11 @@ async def startup_event():
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/slow")
+def slow_operation():
+    time.sleep(3)
+    return {"message": "Slept: 3s"}
 
 
 if __name__ == "__main__":
