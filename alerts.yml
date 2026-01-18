@@ -1,0 +1,20 @@
+groups:
+- name: fastApiAlerts
+  rules:
+  - alert: HighRequestVolume
+    expr: rate(http_requests_total[1m]) > 5
+    for: 15s
+    labels:
+      severity: critical
+    annotations:
+      summary: "Wysoki ruch w aplikacji"
+      description: "Liczba zapytań przekracza 5 na sekundę."
+
+  - alert: HighRequestLatency
+    expr: rate(http_request_duration_seconds_sum[1m]) > 0.5
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Wolne działanie aplikacji"
+      description: "Wysoki czas odpowiedzi (powyżej 0.5s) przez ponad minutę."
