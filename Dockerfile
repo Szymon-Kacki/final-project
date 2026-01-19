@@ -25,7 +25,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # copy project files
-COPY . .
+# only copy the app directory to reduce image size
+COPY app/ ./app/
 
 # expose the application port
 EXPOSE 8000
