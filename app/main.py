@@ -37,6 +37,13 @@ def slow_operation():
     time.sleep(3)
     return {"message": "Slept: 3s"}
 
+@app.get("/login")
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register")
+def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 if __name__ == "__main__":
     import uvicorn
