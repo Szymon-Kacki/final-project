@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Zaloguj się</h2>
+<form id="loginForm">
+    <input type="text" id="username" placeholder="Nazwa użytkownika" required>
+    <input type="password" id="password" placeholder="Hasło" required>
+    <button type="submit">Zaloguj</button>
+
+    <p style="margin-top: 10px;">Nie masz konta? <a href="/register">Zarejestruj się</a>
+</p>
+</form>
+<p id="message"></p>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+
+            localStorage.setItem('token', data.access_token);
+            localStorage.setItem('user', username);
+            localStorage.setItem('role', data.role);
+            document.getElementById('message').innerText = "Zalogowano pomyślnie! Przekierowanie...";
+            setTimeout(() => window.location.href = "/", 1000);
+        } else {
+            document.getElementById('message').innerText = "Błąd logowania.";
+        }
+    });
+</script>
+{% endblock %}

@@ -14,7 +14,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     
     hashed_pwd = auth.get_password_hash(user.password)
-    new_user = models.User(username=user.username, hashed_password=hashed_pwd)
+    new_user = models.User(username=user.username, hashed_password=hashed_pwd, role = "user")
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -33,4 +33,4 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         )
     
     access_token = auth.create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "role": user.role}

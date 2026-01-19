@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.database import SessionLocal, engine
 from app import models
-
+from app.auth import get_password_hash
 
 def init_db():
     models.Base.metadata.create_all(bind=engine)
@@ -35,6 +35,24 @@ def init_db():
         print("Sample books inserted.")
     else:
         print("Books already exist — skipping initialization.")
+
+    admin_user = db.query(models.User).filter(models.User.username == "admin").first()
+    
+    if not admin_user:
+        print("Creating superuser 'admin'...")
+        hashed_pwd = get_password_hash("admin")
+        
+        db_admin = models.User(
+            username="admin", 
+            hashed_password=hashed_pwd, 
+            role="admin" 
+        )
+
+        db.add(db_admin)
+        db.commit()
+        print("Superuser created. Login: admin / Pass: admin123")
+    else:
+        print("Admin user already exists.")
 
     db.close()
 

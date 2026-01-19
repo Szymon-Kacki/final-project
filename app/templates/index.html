@@ -1,19 +1,153 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Welcome!</h2>
-<p>This is a minimal FastAPI + Postgres demo.</p>
-<p>You can explore:</p>
-<ul>
-    <li><a href="/books">List of books (JSON API)</a></li>
-</ul>
+<h2>Biblioteka</h2>
+<div id="authStatus" style="margin-bottom: 20px;"></div>
 
-<p>Possible TODO for the app:</p>
-<ul>
-    <li>Add CRUD operations</li>
-    <li>Build forms</li>
-    <li>Add authentication</li>
-    <li>Containerize the app</li>
-    <li>Deploy & monitor</li>
-</ul>
+<div id="adminSection" style="display:none; border: 2px solid #d9534f; padding: 15px; margin-bottom: 20px;">
+    <h3>Admin Panel:</h3>
+    <h3>Dodaj nową książkę</h3>
+    <input type="text" id="newTitle" placeholder="Tytuł">
+    <input type="text" id="newAuthor" placeholder="Autor">
+    <input type="number" id="newYear" placeholder="Rok">
+    <textarea id="newDesc" placeholder="Opis"></textarea>
+    <button onclick="addBook()">Dodaj książkę</button>
+</div>
+
+<div id="booksContainer">
+    <ul id="booksList"></ul>
+</div>
+
+<div id="editSection" style="display:none; border: 1px solid #ccc; padding: 20px; margin-top: 20px; background-color: #f9f9f9;">
+    <h3>Edytuj Książkę (ID: <span id="editId"></span>)</h3>
+    <label>Tytuł:</label> <input type="text" id="editTitle" style="width: 100%;"><br>
+    <label>Autor:</label> <input type="text" id="editAuthor" style="width: 100%;"><br>
+    <label>Rok:</label> <input type="number" id="editYear"><br>
+    <label>Opis:</label> <textarea id="editDescription" rows="4" style="width: 100%;"></textarea><br>
+    <button onclick="submitEdit()">Zapisz zmiany</button>
+    <button onclick="closeEdit()">Anuluj</button>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    const role = localStorage.getItem('role');
+    
+    let allBooks = []; 
+
+    if (token) {
+        let roleBadge = role === 'admin' ? ' <b style="color:red">(ADMIN)</b>' : ' (Użytkownik)';
+        document.getElementById('authStatus').innerHTML = `Zalogowany jako: <b>${user}</b>${roleBadge} <button onclick="logout()">Wyloguj</button>`;
+        
+        if (role === 'admin') {
+            document.getElementById('adminSection').style.display = 'block';
+        }
+    } else {
+        document.getElementById('authStatus').innerHTML = `Zaloguj się aby edytować. <a href="/login">Logowanie</a>`;
+    }
+
+    async function loadBooks() {
+        const response = await fetch('/books/');
+        allBooks = await response.json();
+        const list = document.getElementById('booksList');
+        list.innerHTML = '';
+        
+        allBooks.forEach(book => {
+            const li = document.createElement('li');
+            li.style.marginBottom = "15px";
+            
+            let buttons = '';
+            if (token) {
+                buttons += `<button onclick="openEdit(${book.id})">Edytuj</button> `;
+            }
+            if (role === 'admin') {
+                buttons += `<button onclick="deleteBook(${book.id})" style="color:red">Usuń</button>`;
+            }
+
+            li.innerHTML = `
+                <strong>${book.title}</strong> (${book.year || '-'}) <br>
+                <small>${book.author}</small><br>
+                <em>${book.description || ''}</em>
+                <div style="margin-top: 5px;">${buttons}</div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    async function addBook() {
+        const newBook = {
+            title: document.getElementById('newTitle').value,
+            author: document.getElementById('newAuthor').value,
+            year: document.getElementById('newYear').value,
+            description: document.getElementById('newDesc').value
+        };
+
+        const response = await fetch('/books/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(newBook)
+        });
+
+        if (response.ok) {
+            alert("Dodano!");
+            loadBooks();
+            document.getElementById('newTitle').value = ""; 
+        } else {
+            alert("Błąd! Tylko Admin może dodawać.");
+        }
+    }
+
+    async function deleteBook(id) {
+        if(!confirm("Czy na pewno usunąć?")) return;
+
+        const response = await fetch(`/books/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (response.ok) {
+            loadBooks();
+        } else {
+            alert("Błąd! Tylko Admin może usuwać.");
+        }
+    }
+
+    function openEdit(id) {
+        const book = allBooks.find(b => b.id === id);
+        if (!book) return;
+        document.getElementById('editSection').style.display = 'block';
+        document.getElementById('editId').innerText = book.id;
+        document.getElementById('editTitle').value = book.title;
+        document.getElementById('editAuthor').value = book.author;
+        document.getElementById('editYear').value = book.year;
+        document.getElementById('editDescription').value = book.description;
+        document.getElementById('editSection').scrollIntoView({behavior: "smooth"});
+    }
+
+    function closeEdit() { document.getElementById('editSection').style.display = 'none'; }
+
+    async function submitEdit() {
+        const id = document.getElementById('editId').innerText;
+        const updatedBook = {
+            title: document.getElementById('editTitle').value,
+            author: document.getElementById('editAuthor').value,
+            year: document.getElementById('editYear').value,
+            description: document.getElementById('editDescription').value
+        };
+        const response = await fetch(`/books/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify(updatedBook)
+        });
+        if (response.ok) { closeEdit(); loadBooks(); } 
+        else { alert("Błąd edycji"); }
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.reload();
+    }
+
+    loadBooks();
+</script>
 {% endblock %}
