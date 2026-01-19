@@ -3,7 +3,7 @@ name: CD - Build and Push Docker Image
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-and-push:
@@ -23,6 +23,12 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: szymonkacki/librarylite
+          tags: |
+            type=ref,event=tag       # v1.0.0 etc.
+
+      # use the tag version to set an environment variable for Docker Compose
+      - name: Set LIBRARYLITE_VERSION for Compose
+        run: echo "LIBRARYLITE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -31,3 +37,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose pull
+          docker-compose up -d
