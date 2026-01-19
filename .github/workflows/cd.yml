@@ -37,8 +37,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Deploy with Docker Compose
-        run: |
-          docker-compose pull
-          docker-compose up -d
