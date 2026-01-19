@@ -22,7 +22,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: twoj_login_dockerhub/librarylite
+          images: szymonkacki/librarylite
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
